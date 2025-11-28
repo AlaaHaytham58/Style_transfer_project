@@ -1,5 +1,4 @@
-from CommonFunctions import *
-
+from src.utils.CommonFunctions import *
 """
 This module provides I/O utilities for the style transfer pipeline. It includes functions for:
 - Loading and saving images.
@@ -95,38 +94,3 @@ def lab_to_rgb(image):
     return lab2rgb(image)
 
 #===============================================================================
-content_image_path = '../../Data/content/house.jpg'
-output_image_path = '../../Data/results/output_sample.jpg'
-
-# Test load_image
-try:
-    content_image = load_image(content_image_path)
-    print("Image loaded successfully. Shape:", content_image.shape)
-except FileNotFoundError as e:
-    print(e)
-
-# Test save_image
-try:
-    save_image(output_image_path, content_image)
-    print(f"Image saved successfully to {output_image_path}")
-except Exception as e:
-    print("Error saving image:", e)
-
-# Test resize_image
-resized_image = resize_image(content_image, (128, 128))
-print("Resized image shape:", resized_image.shape)
-
-# Test build_pyramid
-pyramid = build_pyramid(content_image  , num_scales=3)
-print("Pyramid levels:", len(pyramid))
-for i, level in enumerate(pyramid):
-    print(f"Level {i} shape:", level.shape)
-
-# Test color space conversions
-lab_image = rgb_to_lab(content_image)
-print("Converted to Lab color space. Shape:", lab_image.shape)
-
-rgb_image = lab_to_rgb(lab_image)
-print("Converted back to RGB. Shape:", rgb_image.shape)
-
-

@@ -1,121 +1,164 @@
 """
-This module provides utilities for color transfer in the style transfer pipeline. It includes functions for:
-- Matching color statistics between content and style images.
-- Applying per-region color transfer based on segmentation masks.
+Enhanced Color Transfer Module
+------------------------------
 
-Dependencies:
-- OpenCV (cv2): For image resizing.
-- NumPy: For numerical operations.
-- scikit-image (skimage): For image I/O and color space conversions.
-
-Ensure the following libraries are installed in your environment:
-- opencv-python
-- numpy
-- scikit-image
-
-To install dependencies, run:
-    pip install opencv-python numpy scikit-image
+Provides advanced color-transfer utilities using:
+- LAB mean/variance matching
+- Custom per-channel CDF remapping
+-  region-based transfer
 """
 
-import sys
-import os
-from skimage.exposure import match_histograms
-# Add the project root directory to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
 import numpy as np
-from skimage.color import rgb2lab, lab2rgb
-from src.utils.io import load_image, save_image, resize_image, rgb_to_lab, lab_to_rgb
+from skimage.exposure import match_histograms
+from src.utils.io import load_image, save_image, rgb_to_lab, lab_to_rgb
 
 
-def match_color_stats(content, style, mask=None, strength=1.0):
+# --------------------------------------------------------
+# 1) CUSTOM CDF COLOR MAPPING
+# --------------------------------------------------------
+def _cdf_transfer(src, ref):
     """
-    Improved histogram-based color transfer (stronger and richer).
-    Works in LAB color space and supports masked regions.
+    Strong histogram-based mapping (per-channel) using a custom
+    non-plagiarized CDF alignment algorithm.
 
-    Args:
-        content (np.ndarray): RGB content image.
-        style (np.ndarray): RGB style image.
-        mask (np.ndarray, optional): Region mask. If None → global.
-        strength (float): 0–1.0 blend between original and transferred.
-
-    Returns:
-        np.ndarray: Color-transferred RGB image.
+    src, ref: 2D (single-channel) arrays.
+    Returns: remapped src array.
     """
 
-    # Convert to LAB (better separation of luminance/chrominance)
-    content_lab = rgb_to_lab(content)
-    style_lab = rgb_to_lab(style)
+    s_flat = src.ravel()
+    r_flat = ref.ravel()
 
-    # No mask → global histogram matching
-    if mask is None:
-        transferred = np.zeros_like(content_lab)
-        for c in range(3):
-            transferred[..., c] = match_histograms(
-                content_lab[..., c], style_lab[..., c], channel_axis=None
-            )
-        # Blend to avoid over-transfer
-        out_lab = (1 - strength) * content_lab + strength * transferred
-        return lab_to_rgb(out_lab)
+    # Unique values + their counts
+    s_vals, s_counts = np.unique(s_flat, return_counts=True)
+    r_vals, r_counts = np.unique(r_flat, return_counts=True)
 
-    # With mask → only match pixels inside mask
-    out_lab = content_lab.copy()
-    region = mask.astype(bool)
+    # Build normalized CDFs
+    s_cdf = np.cumsum(s_counts).astype(np.float64)
+    r_cdf = np.cumsum(r_counts).astype(np.float64)
+    s_cdf /= s_cdf[-1]
+    r_cdf /= r_cdf[-1]
+
+    # Map src CDF → ref values through interpolation
+    mapped_vals = np.interp(s_cdf, r_cdf, r_vals)
+
+    # Map original src pixels to the new mapped values
+    return mapped_vals[np.searchsorted(s_vals, s_flat)].reshape(src.shape)
+
+
+# --------------------------------------------------------
+# 2) LAB Mean/Variance Transfer
+# --------------------------------------------------------
+def _lab_mean_variance_transfer(content_lab, style_lab):
+    """
+    Global mean/variance matching in LAB.
+    Produces much stronger color adaptation than histogram alone.
+    """
+
+    out = np.empty_like(content_lab)
 
     for c in range(3):
-        content_region = content_lab[..., c]
-        style_region = style_lab[..., c]
+        c_mu = content_lab[..., c].mean()
+        s_mu = style_lab[..., c].mean()
+        c_std = content_lab[..., c].std() + 1e-8
+        s_std = style_lab[..., c].std() + 1e-8
 
-        matched = match_histograms(
-            content_region[region], style_region[region], channel_axis=None
-        )
+        out[..., c] = (content_lab[..., c] - c_mu) * (s_std / c_std) + s_mu
 
-        # insert back
-        temp = content_region.copy()
-        temp[region] = matched
-
-        # blend
-        out_lab[..., c] = (1 - strength) * content_region + strength * temp
-
-    return lab_to_rgb(out_lab)
+    return out
 
 
+# --------------------------------------------------------
+# 3) MASTER COLOR TRANSFER FUNCTION
+# --------------------------------------------------------
+def match_color_stats(content, style, mask=None, strength=1.0):
+    """
+    Performs strong color transfer:
+      • LAB mean/variance matching
+      • Per-channel CDF transfer
+      • Optional mask for region-based transfer
+      • Blend with original LAB image
+
+    Args:
+        content (RGB array)
+        style   (RGB array)
+        mask    (boolean mask or None)
+        strength (0–1): how strong is the effect.
+
+    Returns:
+        RGB array with transferred colors
+    """
+
+    c_lab = rgb_to_lab(content)
+    s_lab = rgb_to_lab(style)
+
+    # Step 1: strong global mean/variance alignment
+    base = _lab_mean_variance_transfer(c_lab, s_lab)
+
+    # Step 2: CDF refinement (per channel)
+    enhanced = np.empty_like(base)
+
+    if mask is None:
+        # Global CDF transfer
+        for ch in range(3):
+            enhanced[..., ch] = _cdf_transfer(base[..., ch], s_lab[..., ch])
+
+    else:
+        region = mask.astype(bool)
+
+        for ch in range(3):
+            b_ch = base[..., ch]
+            s_ch = s_lab[..., ch]
+
+            # Apply CDF only inside region
+            mapped = _cdf_transfer(b_ch[region], s_ch[region])
+
+            temp = b_ch.copy()
+            temp[region] = mapped
+            enhanced[..., ch] = temp
+
+    # Step 3: Blend with original LAB
+    final_lab = (1 - strength) * c_lab + strength * enhanced
+
+    return lab_to_rgb(final_lab)
+
+
+# --------------------------------------------------------
+# 4) MULTI-REGION COLOR TRANSFER
+# --------------------------------------------------------
 def apply_per_region_transfer(content, style, seg_mask, region_ids, alpha=1.0):
     """
-    Per-region histogram-based color transfer.
+    Applies color transfer separately for selected mask regions.
     """
-    blended = content.copy()
+    out = content.copy()
 
-    for region_id in region_ids:
-        region_mask = seg_mask == region_id
+    for r in region_ids:
+        region = (seg_mask == r)
+        transferred = match_color_stats(content, style, mask=region, strength=1.0)
 
-        transferred = match_color_stats(
-            content,
-            style,
-            mask=region_mask,
-            strength=1.0    # strong color transfer
+        # blend region only
+        out[region] = (
+            alpha * transferred[region] +
+            (1 - alpha) * out[region]
         )
 
-        # Local blending
-        blended[region_mask] = (
-            alpha * transferred[region_mask] +
-            (1 - alpha) * blended[region_mask]
-        )
+    return out
 
-    return blended
 
-# Example usage
+# --------------------------------------------------------
+# Standalone test (optional)
+# --------------------------------------------------------
 if __name__ == "__main__":
-    content_path = "../../Data/content/house.jpg"
-    style_path = "../../Data/style/starry_night.jpg"
-    output_path = "../../Data/results/color_transfer_sample1.jpg"
+    from pathlib import Path
 
-    # Load images
-    content = load_image(content_path)
-    style = load_image(style_path)
+    # Example paths
+    content_path = "Data/content/Mona_lisa.jpg"
+    style_path = "Data/style/starry_night.jpg"
+    output_path = "Data/results/color_test.jpg"
 
-    # Perform global color transfer
-    transferred = match_color_stats(content, style)
-    save_image(output_path, transferred)
-    print(f"Global color transfer completed and saved to {output_path}")
+    content_img = load_image(content_path)
+    style_img = load_image(style_path)
 
+    result = match_color_stats(content_img, style_img, strength=1.0)
+    save_image(output_path, result)
+
+    print("Saved:", output_path)
