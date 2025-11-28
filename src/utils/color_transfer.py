@@ -7,17 +7,15 @@ Provides advanced color-transfer utilities using:
 - Custom per-channel CDF remapping (multi-pass)
 - Optional region-based transfer
 - Contrast & gamma enhancement
-
-Author: You :)
 """
 
 import numpy as np
 from src.utils.io import load_image, save_image, rgb_to_lab, lab_to_rgb
 
 
-# --------------------------------------------------------
+
 # 1) CUSTOM CDF COLOR MAPPING
-# --------------------------------------------------------
+
 def _cdf_transfer(src, ref):
     """
     Strong histogram-based mapping (per-channel) using a custom
@@ -46,9 +44,9 @@ def _cdf_transfer(src, ref):
     return mapped_vals[np.searchsorted(s_vals, s_flat)].reshape(src.shape)
 
 
-# --------------------------------------------------------
+
 # 2) LAB Mean/Variance Transfer (with chroma boost)
-# --------------------------------------------------------
+
 def _lab_mean_variance_transfer(content_lab, style_lab, chroma_boost=1.5, l_boost=1.0):
     """
     Global mean/variance matching in LAB + chroma boosting.
@@ -83,9 +81,9 @@ def _lab_mean_variance_transfer(content_lab, style_lab, chroma_boost=1.5, l_boos
     return out
 
 
-# --------------------------------------------------------
+
 # 3) MASTER COLOR TRANSFER FUNCTION (super strong)
-# --------------------------------------------------------
+
 def match_color_stats(
     content,
     style,
@@ -160,10 +158,10 @@ def match_color_stats(
         enhanced = new_enhanced
 
     # Step 3: blend with original LAB
-    # You can add an extra factor here if you want even more aggression.
+   
     final_lab = (1.0 - strength) * c_lab + strength * enhanced
 
-    # Optional: enhance L contrast by stretching it
+    #  enhance L contrast by stretching it
     if enhance_L_contrast:
         L = final_lab[..., 0]
         L_min = L.min()
@@ -184,9 +182,9 @@ def match_color_stats(
     return result
 
 
-# --------------------------------------------------------
+
 # 4) MULTI-REGION COLOR TRANSFER
-# --------------------------------------------------------
+
 def apply_per_region_transfer(content, style, seg_mask, region_ids, alpha=1.0, **kwargs):
     """
     Applies color transfer separately for selected mask regions.
@@ -205,14 +203,12 @@ def apply_per_region_transfer(content, style, seg_mask, region_ids, alpha=1.0, *
     return out
 
 
-# --------------------------------------------------------
+
 # Standalone test
-# --------------------------------------------------------
+
 if __name__ == "__main__":
-    # IMPORTANT: run from project root:
-    #   python -m src.utils.color_transfer
     content_path = "Data/content/Mountain.jpg"
-    style_path = "Data/style/styled_candy.jpg"
+    style_path = "Data/style/scream.jpg"
     output_path = "Data/results/color_test_new.jpg"
 
     content_img = load_image(content_path)
