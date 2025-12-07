@@ -1,4 +1,5 @@
-from src.utils.CommonFunctions import *
+from .CommonFunctions import *
+
 """
 This module provides I/O utilities for the style transfer pipeline. It includes functions for:
 - Loading and saving images.
