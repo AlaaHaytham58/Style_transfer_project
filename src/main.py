@@ -36,3 +36,70 @@ TODOs for implementation:
  - Add unit tests for one-scale behaviour (PatchMatch + reconstruction).
 """
 
+"""
+Simple CLI entry point to run the style transfer implemented in src/style_transfer.py
+
+Usage (from project root):
+> python main.py --content path\to\content.jpg --style path\to\style.jpg --out out.png
+"""
+import os
+import sys
+import time
+import argparse
+from skimage import io
+import numpy as np
+
+# ensure src/ is on path so we can import style_transfer
+ROOT = os.path.dirname(os.path.dirname(__file__))  # project root (parent of src/)
+SRC = os.path.join(ROOT, "src")
+if SRC not in sys.path:
+    sys.path.insert(0, SRC)
+
+from style_transfer import style_transfer  # type: ignore
+
+
+def _load_image(path):
+    img = io.imread(path)
+    # drop alpha if present
+    if img.ndim == 3 and img.shape[2] > 3:
+        img = img[..., :3]
+    return img
+
+
+def _save_image(path, img):
+    img = np.asarray(img)
+    if img.dtype == np.float32 or img.dtype == np.float64:
+        img = np.clip(img, 0.0, 1.0)
+        img = (img * 255).astype(np.uint8)
+    io.imsave(path, img)
+
+
+def parse_args():
+    p = argparse.ArgumentParser(description="Run patch-based multi-scale style transfer")
+    p.add_argument("--scales", type=int, default=5, help="Number of pyramid scales")
+    p.add_argument("--patch", type=int, default=7, help="Patch size (odd recommended)")
+    p.add_argument("--iters", type=int, default=5, help="PatchMatch iterations per scale")
+    p.add_argument("--no-color", action="store_true", help="Disable final color transfer (useful for debugging texture)")
+    return p.parse_args()
+
+
+def main():
+    args = parse_args()
+    content = _load_image("./Data/content/house.jpg")
+    style = _load_image("./Data/style/starry_night.jpg")
+    print(f"Content: {content.shape}, Style: {style.shape}")
+    t0 = time.time()
+    out = style_transfer(content, style, num_scales=args.scales,
+                         patch_size=args.patch, pm_iters=args.iters, 
+                         apply_color_transfer=(not args.no_color), debug=True,
+                         style_max_dim=100, tile_style=True)
+    duration = time.time() - t0
+    if out is None:
+        print("Style transfer returned None -- aborting.")
+        return
+    _save_image("res.jpg", out)
+    print(f"Saved result to res.jpg (took {duration:.1f}s)")
+
+
+if __name__ == "__main__":
+    main()
