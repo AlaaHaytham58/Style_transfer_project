@@ -1,0 +1,7 @@
+Libraries Used
+
+NumPy – numerical operations
+OpenCV (cv2) – image loading and processing
+SciPy – optimization and filtering
+scikit-learn – nearest neighbor patch matching
+Jupyter Notebook – running the project interactively
