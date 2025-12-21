@@ -1,7 +1,66 @@
-Libraries Used
+# Style Transfer Project
+Image Style Transfer Using Optimization-Based Techniques
 
-NumPy – numerical operations
-OpenCV (cv2) – image loading and processing
-SciPy – optimization and filtering
-scikit-learn – nearest neighbor patch matching
-Jupyter Notebook – running the project interactively
+---
+
+## Project Overview
+
+This project implements an image style transfer system that synthesizes a new image by combining the structural content of a given content image with the artistic style of a separate style image. The goal is to preserve the semantic structure of the content image while transferring textures, colors, and visual patterns from the style image.
+
+The project follows a classical optimization-based approach to style transfer, inspired by texture synthesis and multi-scale image processing techniques. It allows controlled stylization through iterative refinement while maintaining important content regions.
+
+---
+
+## Algorithm Structure
+
+1. Load the content image and the style image and normalize their resolutions.
+2. Apply optional color transfer to align the content image palette with the style image.
+3. Construct multi-scale Gaussian pyramids for both images.
+4. Extract overlapping patches of multiple sizes from the current synthesized image and the style image.
+5. Perform nearest-neighbor patch matching between synthesized image patches and style image patches.
+6. Aggregate matched style patches to reconstruct the image using weighted averaging.
+7. Enforce content preservation by blending the reconstructed image with the content image.
+8. Apply regularization and denoising to remove artifacts.
+9. Repeat the process across scales and patch sizes until convergence.
+10. Output the final stylized image.
+
+---
+
+## Repository Structure
+├── project-version2.ipynb
+├── content_images/
+├── style_images/
+├── results/
+└── README.md
+
+
+---
+
+## Requirements
+
+numpy
+scipy
+opencv-python
+matplotlib
+scikit-image
+tqdm
+
+Install all dependencies using:
+```bash
+pip install numpy scipy opencv-python matplotlib scikit-image tqdm
+How to Run
+
+Clone the repository and navigate to the project directory.
+
+Install the required Python packages.
+
+Open the Jupyter Notebook project-version2.ipynb.
+
+Set the paths to the content and style images.
+
+Run all notebook cells sequentially to generate the stylized output.
+
+Expected Outputs
+
+The project produces stylized images that preserve the spatial structure of the content image while adopting textures and color distributions from the style image. Output images are saved in the results directory. Intermediate visualizations may also be displayed within the notebook to illustrate the effect of patch size, scale, and iteration count on the final result.
+
