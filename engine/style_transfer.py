@@ -178,11 +178,11 @@ class StyleTransfer:
         content,
         style,
         mask=None,
-        strength=1.0,
-        chroma_boost=1.5,
-        style_chroma_boost=1.2,
-        cdf_passes=2,
-        gamma=0.9,
+        strength=0.7,
+        chroma_boost=1.1,
+        style_chroma_boost=1.05,
+        cdf_passes=1,
+        gamma=1.0,
         enhance_L_contrast=True,
     ):
         """
