@@ -1,66 +1,133 @@
-Style Transfer Project
+Perfect! Here's a **clean, GitHub-ready, compact Markdown version** of your Neural Style Transfer project using tables, bullets, and sections for readability:
 
-Image Style Transfer Using Optimization-Based Techniques
+````markdown
+# 🎨 Neural Style Transfer Project
 
-📌 Project Overview
+🎓 Computer & Communication Engineering | 💻 Computer Vision & Deep Learning  
+📄 Reference Paper: *A Neural Algorithm of Artistic Style* – Gatys et al.
 
-This project implements an image style transfer system that synthesizes a new image by combining the structural content of a given content image with the artistic style of a separate style image. The goal is to preserve the semantic structure of the content image while transferring textures, colors, and visual patterns from the style image.
+---
 
-The project follows a classical optimization-based approach to style transfer, inspired by texture synthesis and multi-scale image processing techniques. It allows controlled stylization through iterative refinement while maintaining important content regions.
+## 📌 Project Description
 
-🧠 Algorithm Structure
+**Neural Style Transfer (NST)** blends the **content of one image** with the **artistic style of another** using **CNNs**.  
 
-Load the content image and the style image and normalize their resolutions.
+The project extracts **content** and **style features** from a pre-trained CNN (e.g., VGG19) and generates a new image that preserves the content structure while applying the style's textures and colors.
 
-Apply optional color transfer to align the content image palette with the style image.
+---
 
-Construct multi-scale Gaussian pyramids for both images.
+## 🎥 Project Demo
 
-Extract overlapping patches of multiple sizes from the current synthesized image and the style image.
+https://drive.google.com/file/d/1JJwGCG2Cr3oNtUf47ZoNnI6OfnQ4cA1x/view?usp=sharing
 
-Perform nearest-neighbor patch matching between synthesized image patches and style image patches.
+---
 
-Aggregate matched style patches to reconstruct the image using weighted averaging.
+## 🧠 Algorithm Structure
 
-Enforce content preservation by blending the reconstructed image with the content image.
+| Step | Description                                                           |
+| ---- | --------------------------------------------------------------------- |
+| 1    | Load content and style images; normalize resolution                   |
+| 2    | Optional color transfer to align palettes                             |
+| 3    | Build multi-scale Gaussian pyramids                                   |
+| 4    | Extract overlapping patches of multiple sizes                         |
+| 5    | Nearest-neighbor patch matching between synthesized and style patches |
+| 6    | Aggregate style patches via weighted averaging                        |
+| 7    | Blend reconstructed image with content to preserve structure          |
+| 8    | Apply regularization/denoising                                        |
+| 9    | Repeat across scales until convergence                                |
+| 10   | Output final stylized image                                           |
 
-Apply regularization and denoising to remove artifacts.
+---
 
-Repeat the process across scales and patch sizes until convergence.
+## 🔄 Project Flow
 
-Output the final stylized image.
+**1. Input Images**
 
-📂 Repository Structure
-.
-├── project-version2.ipynb
-├── content_images/
-├── style_images/
-├── results/
-└── README.md
+* Content Image
+* Style Image
 
-📦 Requirements
+**2. Preprocessing**
+
+* Resize to fixed resolution
+* Normalize pixel values
+* Convert to tensors
+
+**3. Feature Extraction**
+
+* Pre-trained CNN (VGG19)
+* Content features from deep layers
+* Style features from multiple convolutional layers
+
+**4. Loss Computation**
+
+* Content Loss
+* Style Loss (Gram Matrices)
+* Total Variation Loss
+
+**5. Optimization**
+
+* Initialize generated image (noise or content)
+* Gradient-based iterative updates
+* Minimize total loss
+
+**6. Output**
+
+* Stylized image combining content and style
+
+---
+
+## 🧠 Key Strategies
+
+**Content Representation**
+
+* Higher CNN layers
+* Preserves semantic structure
+
+**Style Representation**
+
+* Gram Matrices from multiple layers
+* Captures textures, colors, feature correlations
+
+**Loss Functions**
+
+* **Content Loss:** Difference between content and generated features
+* **Style Loss:** Difference between Gram matrices
+* **Total Variation Loss:** Smoothness and noise reduction
+
+**Optimization**
+
+* Gradient descent on generated image
+* Refinement over iterations for high visual quality
+
+---
+
+## 📦 Requirements
+
+```bash
 pip install numpy scipy opencv-python matplotlib scikit-image tqdm
+```
 
-▶️ How to Run
+---
 
-Clone the repository and navigate to the project directory.
+## ▶️ How to Run
 
-Install dependencies
+1. Clone the repo and navigate to project directory
+2. Install dependencies:
 
+```bash
 pip install -r requirements.txt
+```
 
-Install the required Python packages.
+3. Open `project-version2.ipynb` in Jupyter Notebook
+4. Set paths for content and style images
+5. Run all notebook cells sequentially
 
-Open the Jupyter Notebook project-version2.ipynb.
+---
 
-Set the paths to the content and style images.
+## 🎓 Notes
 
-Run all notebook cells sequentially.
+* Project is **unsupervised**; no training data required
+* Results may vary slightly due to randomized initialization
+* Intended for academic experimentation in **computer vision & image processing**
 
-📊 Expected Outputs
-
-The project produces stylized images that preserve the spatial structure of the content image while adopting textures and color distributions from the style image. Output images are saved in the results directory. Intermediate visualizations may be displayed in the notebook to analyze the effect of different parameters.
-
-🎓 Notes
-
-This project is unsupervised and does not require training data. Due to randomized initialization and approximate nearest-neighbor matching, results may vary slightly between runs. The implementation is intended for academic experimentation in computer vision and image processing.
+```
