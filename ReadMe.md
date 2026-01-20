@@ -7,7 +7,7 @@
 
 💻 **Domain:** Computer Vision & Deep Learning
 
-📄 **Reference Paper:** [*A Neural Algorithm of Artistic Style* – Gatys et al. (2015)](https://arxiv.org/abs/1508.06576)
+📄 **Reference Paper:** [*A Neural Algorithm of Artistic Style* – Gatys et al. (2016)](https://arxiv.org/abs/1508.06576)
 
 ---
 
@@ -68,7 +68,7 @@ pip install numpy scipy opencv-python matplotlib scikit-image tqdm
 
 1. **Clone the Repository:**
 ```bash
-(https://github.com/AlaaHaytham58/Style_transfer_project.git)
+https://github.com/AlaaHaytham58/Style_transfer_project.git
 cd Style_transfer_project
 
 ```

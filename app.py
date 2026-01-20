@@ -1,19 +1,19 @@
 import streamlit as st
 import numpy as np
-from engine.pipeline import run_style_transfer
-from engine.metrics import compute_metrics
+from PROJECT_FINAL_IMPLEMENTATION.pipeline import run_style_transfer
+from PROJECT_FINAL_IMPLEMENTATION.metrics import compute_metrics
 from PIL import Image
 import io
 
-# ======================
+
 # PAGE CONFIG
-# ======================
+
 st.set_page_config(layout="wide")
 st.title("🎨 Patch-Based Style Transfer")
 
-# ======================
+
 # SIDEBAR PARAMETERS
-# ======================
+
 st.sidebar.header("Style Transfer Parameters")
 
 patch_sizes = st.sidebar.multiselect(
@@ -45,9 +45,9 @@ brightness = st.sidebar.slider(
     step=0.05
 )
 
-# ======================
+
 # IMAGE INPUT
-# ======================
+
 st.header("Input Images")
 
 col1, col2, col3 = st.columns(3)
@@ -64,9 +64,9 @@ with col3:
         ["jpg", "png", "jpeg"]
     )
 
-# ======================
+
 # HELPERS
-# ======================
+
 def apply_brightness(img, factor):
     img = img.astype(np.float32) / 255.0
     img = np.clip(img * factor, 0.0, 1.0)
@@ -78,9 +78,9 @@ def numpy_image_to_bytes(img_np):
     img_pil.save(buf, format="PNG")
     return buf.getvalue()
 
-# ======================
+
 # RUN
-# ======================
+
 if st.button("🚀 Run Style Transfer") and content_file and style_file:
     content_img = np.array(Image.open(content_file).convert("RGB"))
     style_img = np.array(Image.open(style_file).convert("RGB"))
@@ -101,9 +101,7 @@ if st.button("🚀 Run Style Transfer") and content_file and style_file:
     # Post-processing
     output = apply_brightness(output, brightness)
 
-    # ======================
     # DISPLAY RESULTS
-    # ======================
     st.header("Results")
 
     if dnn_file is not None:
@@ -123,10 +121,7 @@ if st.button("🚀 Run Style Transfer") and content_file and style_file:
 
         with colB:
             st.image(dnn_output, caption="Pretrained DNN Output", use_container_width=True)
-
-        # ======================
         # COMPARISON TABLE
-        # ======================
         st.subheader("📊 Quantitative Comparison")
 
         st.table({
@@ -139,9 +134,7 @@ if st.button("🚀 Run Style Transfer") and content_file and style_file:
         st.image(output, caption="Stylized Output", use_container_width=True)
         st.info("Upload a pretrained DNN output image to enable quantitative comparison.")
 
-    # ======================
     # DOWNLOAD
-    # ======================
     img_bytes = numpy_image_to_bytes(output)
 
     st.download_button(

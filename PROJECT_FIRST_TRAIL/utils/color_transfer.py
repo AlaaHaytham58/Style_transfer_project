@@ -10,7 +10,7 @@ Provides advanced color-transfer utilities using:
 """
 
 import numpy as np
-from src.utils.io import load_image, save_image, rgb_to_lab, lab_to_rgb
+from PROJECT_FIRST_TRAIL.utils.io import load_image, save_image, rgb_to_lab, lab_to_rgb
 
 
 

@@ -19,26 +19,26 @@ def compute_metrics(content, style, output):
     Images are internally resized to match output resolution.
     """
 
-    # ======================
+ 
     # Align spatial sizes
-    # ======================
+ 
     if content.shape != output.shape:
         content = _match_size(content, output)
 
     if style.shape != output.shape:
         style = _match_size(style, output)
 
-    # ======================
+ 
     # SSIM (content preservation)
-    # ======================
+ 
     gray_c = cv2.cvtColor(content, cv2.COLOR_RGB2GRAY)
     gray_o = cv2.cvtColor(output, cv2.COLOR_RGB2GRAY)
 
     ssim_score = ssim(gray_c, gray_o, data_range=255)
 
-    # ======================
+ 
     # Color histogram similarity (style similarity)
-    # ======================
+ 
     hist_style = cv2.calcHist(
         [style],
         [0, 1, 2],
