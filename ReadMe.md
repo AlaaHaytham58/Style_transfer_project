@@ -68,8 +68,8 @@ pip install numpy scipy opencv-python matplotlib scikit-image tqdm
 
 1. **Clone the Repository:**
 ```bash
-git clone https://github.com/your-username/nst-project.git
-cd nst-project
+(https://github.com/AlaaHaytham58/Style_transfer_project.git)
+cd Style_transfer_project
 
 ```
 
